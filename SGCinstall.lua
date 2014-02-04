@@ -1,6 +1,17 @@
--- SGControl by zenithselenium - © 2014
+-- SGCinstall by zenithselenium - © 2014
 -- Install script for SGCraft computer controlled dialing using kode
 
+
+function printHeader()
+  shell.run("clear")
+  print("################################################")
+  print("#                                              #")
+  print("#                   SGCinstall                 #")
+  print("#              by: zenithselenium              #")
+  print("#                                              #")
+  print("################################################")
+  print()
+end
 
 function emulateDisk()
 	if (fs.exists("/disk")) then
@@ -45,6 +56,7 @@ local function setupGit()
 end
 
 if #tArgs == 3 then
+	printHeader()
 	local valid = false
 	local version = ""
 	local peripherals = ""
@@ -75,6 +87,10 @@ if #tArgs == 3 then
 		print("kode auth set up.")
 		shell.run("pastebin","get RwCbqP4i button")
 		print("Installed DireWolf20's Button API")
+		file = fs.open("/addresses")
+		file.write("{}")
+		file.close()
+		shell.run("kode","push addresses /addresses")
 
 		version = "SGControl"
 		peripherals = "(modem and monitor, as well as set the id for the dialer)"

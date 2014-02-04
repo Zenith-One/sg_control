@@ -1,7 +1,33 @@
-sg = peripheral.wrap("top")
-rednet.open("bottom")
+-- SGDial by zenithselenium - © 2014
+
+-- So that we don't try and wrap peripherals before they're properly loaded
+sleep(10)
+
+-- Configuration
+-- Notes: 
+--   * 'sides' are from the perspective of the way the turtle is facing
+--   * DIR_FROM_GATE wants the turtle's position relative to the gate.
+--     e.g. "The turtle is west of the gate"
+
+FUEL_CHEST_SIDE = "bottom" -- front, top, or bottom
+STARGATE_SIDE = "top" -- front, left, right, back, top, or bottom
+DIR_FROM_GATE = "down" -- north, south, east, west, up, or down
+
+sg = peripheral.wrap(STARGATE_SIDE)
+rednet.open("right")
 
 state = {["Idle"] = 0, ["Dialling"] = 1, ["Connected"] = 2}
+
+function printHeader()
+  shell.run("clear")
+  print("################################################")
+  print("#                                              #")
+  print("#                    SGDial                    #")
+  print("#              by: zenithselenium              #")
+  print("#                                              #")
+  print("################################################")
+  print()
+end
 
 function split(str, delim, maxNb)
   -- Eliminate bad cases...
@@ -40,13 +66,37 @@ function split(str, delim, maxNb)
   return result
 end
 
-function dial(addr)
+dirSuck = {
+  ["front"] = turtle.suck,
+  ["top"] = turtle.suckUp,
+  ["bottom"] = turtle.suckDown
+}
+
+function dial(id, addr)
+  if (sg.getStackInSlot(1) == nil) then
+    print("No fuel in gate.")
+    if turtle.getItemCount(1) == 0 then
+      print("No fuel in turtle!")
+      if dirSuck[FUEL_CHEST_SIDE]() then
+        print("got fuel from chest.")
+      else
+        print("no fuel in chest either")
+        print(id)
+        rednet.send(id, "nofuel")
+        return false
+      end
+    end
+    sg.pullItem(DIR_FROM_GATE, 1, 1)
+    print("Placed fuel in gate.")
+  end
   sg.connect(addr)
 end
 
 function close()
   sg.disconnect()
 end
+
+printHeader()
 
 while true do
   local id, msg, dis = rednet.receive()
@@ -60,17 +110,21 @@ while true do
 --  end
   if msgArr[1] == "dial" then
     if status == 0 then
-      if pcall(dial, msgArr[2]) then
-       
-        print("Dialing " .. msgArr[2])
+      print(msgArr[2])
+      if pcall(dial, id, msgArr[2]) then
+        rednet.send(id, "dialing")
       else
         print("Unable to dial. Check fuel and verify address.")
+        rednet.send(id, "unable")
       end
     else
-      print("Stargate must be idle to dial!")
+      print("Stargate active; Closing womhole")
+      pcall(close)
+      pcall(dial, msgArr[2])
+      rednet.send(id, "notidle")
     end
   elseif msgArr[1] == "close" then
-    if status > 0 then
+    if status ~= 0 then
       if pcall(close) then
         print("Closing wormhole")
       else
@@ -79,5 +133,8 @@ while true do
     else
       print("No wormhole to close!")
     end
+  elseif msgArr[1] == "ping" then
+    print("Receieve ping from #"..id)
+    rednet.send(id,"pong")
   end
 end
