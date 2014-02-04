@@ -40,8 +40,8 @@ local function printUsage()
 	print("Istallation script for kode and stargate control")
 	print("Usage: sgcinstall <dialer/controller> <username> <project key>")
 	print("")
-	print("username and project key will be used for the stargate address") 
-	print("file stored on kode. (https://kealper.com/projects/kode/)")
+	print("username and project key will be used for the stargate address file stored on kode. (https://kealper.com/projects/kode/)") 
+	print()
 end
 
 if #tArgs < 3 then
@@ -87,7 +87,7 @@ if #tArgs == 3 then
 		print("kode auth set up.")
 		shell.run("pastebin","get RwCbqP4i button")
 		print("Installed DireWolf20's Button API")
-		file = fs.open("/addresses")
+		file = fs.open("/addresses","w")
 		file.write("{}")
 		file.close()
 		shell.run("kode","push addresses /addresses")

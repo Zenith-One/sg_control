@@ -1,123 +1,320 @@
+-- SGController by zenithselenium - © 2014
+-- Large portions of this code is adapted from DireWolf20's portal program
+-- ( http://pastebin.com/ELAFP3kT )
 
--- Configuration
--- Notes: 
---   * 'sides' are from the perspective of the way the turtle is facing
---   * DIR_FROM_GATE wants the turtle's position relative to the gate.
---     e.g. "The turtle is west of the gate"
+-- So that we don't try and wrap peripherals before they're properly loaded
+sleep(10)
 
-FUEL_CHEST_SIDE = "bottom" -- front, top, or bottom
-STARGATE_SIDE = "top" -- front, left, right, back, top, or bottom
-DIR_FROM_GATE = "down" -- north, south, east, west, up, or down
+-- config
+MONITOR_SIDE = "right"
+MODEM_SIDE = "bottom"
+DIALER_ID = 4
 
-sg = peripheral.wrap(STARGATE_SIDE)
-rednet.open("right")
+os.loadAPI("button")
+m = peripheral.wrap(MONITOR_SIDE)
+m.clear()
+rednet.open(MODEM_SIDE)
+local page = 1
+local pages = 0
+local names = {}
+local dialers = {}
+local remove = false
+local outOfFuel = false
 
-state = {["Idle"] = 0, ["Dialling"] = 1, ["Connected"] = 2}
-
-function split(str, delim, maxNb)
-  -- Eliminate bad cases...
-  if string.find(str, delim) == nil then
-    return { str }
-  end
-  if maxNb == nil or maxNb < 1 then
-    maxNb = 0    -- No limit
-  end
-  local result = {}
-  local nb = 0
-  local lastPos
-  local working = str
-  local continue = true
-  while continue do
-    local i = string.find(working, delim)
-    if i == nil then
-      break
-    end
-  --  print("Delimeter found at position "..i)
-    local part = string.sub(working, 1, i-1)
-    nb = nb + 1
-  --  print("part "..nb..": "..part)
-    working = string.sub(working, i+1)
-  --  print("Remaining: "..working)
-    result[nb] = part
-    if nb == maxNb then break end
-  end
-  -- Handle the last field
-  if nb ~= maxNb then
-    result[nb + 1] = working
-  end
-  --for count = 1, #result do
-  -- print(result[count])
-  --end
-  return result
+function printHeader()
+  shell.run("clear")
+  print("################################################")
+  print("#                                              #")
+  print("#                   SGControl                  #")
+  print("#              by: zenithselenium              #")
+  print("#                                              #")
+  print("################################################")
+  print()
 end
 
-dirSuck = {
-  ["front"] = turtle.suck,
-  ["top"] = turtle.suckUp,
-  ["bottom"] = turtle.suckDown
-}
+function fillDialers()
+   dialers[1] = DIALER_ID
+end
 
-function dial(id, addr)
-  if (sg.getStackInSlot(1) == nil) then
-    print("No fuel in gate.")
-    if turtle.getItemCount(1) == 0 then
-      print("No fuel in turtle!")
-      if dirSuck[FUEL_CHEST_SIDE]() then
-        print("got fuel from chest.")
-      else
-        print("no fuel in chest either")
-        print(id)
-        rednet.send(id, "nofuel")
-        return false
+function printTable(table)
+  for k,v in pairs(table) do
+    print("key: "..k)
+  end
+end
+
+function fillTable()
+  m.clear()
+  button.clearTable()
+  local totalrows = 0
+  local numNames = 0
+  local col = 2
+  local row = 11
+  local countRow = 1
+  local currName = 0
+  local npp = 12 --names per page
+  for dialer, data in pairs(names) do
+    for i,j in pairs(data) do
+      totalrows = totalrows+1
+    end
+  end
+  pages = math.ceil(totalrows/npp)
+  print("Total addresses: "..totalrows)
+  for dialer, data in pairs(names) do
+    currName = 0
+    for slot, name in pairs(data) do
+      currName = currName + 1
+      if currName > npp*(page-1) and currName < npp*page+1 then
+        row = 4+(countRow)
+        button.setTable(string.sub(name.name, 0, 17), runStuff, dialer..":"..slot, col, col+17 , row, row)
+        if col == 21 then 
+          col = 2 
+          countRow = countRow + 2
+        else 
+          col = col+19 
+        end
       end
     end
-    sg.pullItem(DIR_FROM_GATE, 1, 1)
-    print("Placed fuel in gate.")
   end
-  sg.connect(addr)
+  button.setTable("Prev Page", prevPage, "", 2, 19, 1, 1)
+  button.setTable("Next Page", nextPage, "", 21, 38, 1, 1)
+  button.setTable("Add Address", addAddress, "", 2, 19, 17, 17)
+  button.setTable("Close Gate", closeGate, "", 21, 38, 17, 17)
+  button.setTable("Remove Address", removeIt, "", 2, 19, 19, 19)
+  button.setTable("Refresh", checkNames, "", 21, 38, 19, 19)
+  button.label(15,3, "Page: "..tostring(page).." of "..tostring(pages))
+  button.screen()
+end      
+
+function nextPage()
+  if page+1 <= pages then 
+    page = page+1 
+  end
+  fillTable()
+  sleep(0.25)
 end
 
-function close()
-  sg.disconnect()
+function prevPage()
+  if page-1 >= 1 then page = page-1 end
+  fillTable()
+  sleep(0.25)
+end   
+                           
+function getNames()
+   names = {}
+   for index, dialer in pairs(dialers) do
+      names[dialer] = {}
+      shell.run("rm","/addresses")
+      shell.run("kode","pull addresses /addresses")
+      local file = fs.open("/addresses","r")
+      names[dialer] = textutils.unserialize(file.readAll())
+      file.close()
+   end
 end
 
-while true do
-  local id, msg, dis = rednet.receive()
---  print("message received: "..msg)
-  local msgArr = split(msg, "|", 0)
-  local status = state[sg.getState()]
---  print(status)
---  print("Message array:")
---  for i=1,#msgArr do
---    print(i..": "..msgArr[i])
---  end
-  if msgArr[1] == "dial" then
-    if status == 0 then
-      print(msgArr[2])
-      if pcall(dial, id, msgArr[2]) then
-        rednet.send(id, "dialing")
-      else
-        print("Unable to dial. Check fuel and verify address.")
-        rednet.send(id, "unable")
-      end
-    else
-      print("Stargate active; Closing womhole")
-      pcall(close)
-      pcall(dial, msgArr[2])
-      rednet.send(id, "notidle")
+function removeIt()
+   remove = not remove
+--   print(remove)
+   button.toggleButton("Remove Address")
+end
+
+function runStuff(info)
+  if remove == true then
+    removeAddress(info)
+  else
+    dial(info)
+  end      
+end
+
+function removeAddress(info)
+  local dialer, slot = string.match(info, "(%d+):(%d+)")
+  button.toggleButton(names[tonumber(dialer)][tonumber(slot)].name)
+   
+  local temp = {}
+  names[tonumber(dialer)][tonumber(slot)] = nil
+
+  local count = 1
+  local addresses = names[tonumber(dialer)]
+  for i = 1, #addresses do
+    if addresses[i] ~= nil then
+      temp[count] = addresses[i]
+      count = count +1
     end
-  elseif msgArr[1] == "close" then
-    if status ~= 0 then
-      if pcall(close) then
-        print("Closing wormhole")
-      else
-        print("Could not close wormhole!")
-      end
-    else
-      print("No wormhole to close!")
+  end
+
+  local file = fs.open("/addresses","w")
+  file.write(textutils.serialize(temp))
+  file.close()
+  shell.run("kode","push addresses /addresses")
+
+  remove=false
+  button.toggleButton("Remove Address")
+--   sleep(1)
+  getNames()
+  fillTable()
+end   
+
+function msgBox()
+  fillTable()
+  m.setBackgroundColor(2)
+  for i = 5,14 do
+    m.setCursorPos(8,i)
+    for j = 1,25 do
+      m.write(" ")
     end
-  elseif msgArr[1] == "ping" then
-    print("Receieve ping from #"..id)
-    rednet.send(id,"pong")
   end
 end
+
+function addAddress()
+  fillTable()
+  msgBox()
+  m.setCursorPos(12,8)
+  m.setTextColor(colors.black)
+  m.write("Please enter the")
+  m.setCursorPos(13,9)
+  m.write("new address in")
+  m.setCursorPos(14,10)
+  m.write("the terminal")
+  m.setBackgroundColor(colors.black)
+  m.setTextColor(colors.white)
+  printHeader()
+  print("Location Name:")
+  local name = read()
+  print("Address: ")
+  local address = read()
+  printHeader()
+  local addresses = names[DIALER_ID]
+  addresses[#addresses + 1] = {["name"]=name,["addr"]=address}
+  local file = fs.open("/addresses","w")
+  file.write(textutils.serialize(addresses))
+  file.close()
+  shell.run("kode","push addresses /addresses")
+  printHeader()
+  print("Addresses updated")
+  fillTable()
+end
+
+function fuelError()
+  print("Stargate out of fuel.")
+  msgBox()
+  m.setCursorPos(15,8)
+  m.setTextColor(colors.black)
+  m.write("Out of fuel")
+  m.setCursorPos(14,9)
+  m.write("Place fuel in")
+  m.setCursorPos(12,10)
+  m.write("chest, then click")
+  m.setCursorPos(17,11)
+  m.write("Refresh")
+  m.setBackgroundColor(colors.black)
+  m.setTextColor(colors.white)
+  outOfFuel = true
+end
+
+function closeGate()
+  button.flash("Close Gate")
+  rednet.send(DIALER_ID, "close|now")
+  getNames()
+  fillTable()
+end
+
+function dial(info)
+  local dialer,slot = string.match(info, "(%d+):(%d+)")
+  local name = names[tonumber(dialer)][tonumber(slot)].name
+  local addr = names[tonumber(dialer)] [tonumber(slot)] .addr
+  button.toggleButton(name)
+  print("Requestion dialer to dial "..name.." ("..addr..")")
+  data = "dial|"..addr
+  rednet.send(tonumber(dialer), data)
+  local id, msg, dis = rednet.receive(5)
+  if (msg == nil) then
+    term.setTextColor(colors.red)
+    print("Dialer failed to respond.")
+    term.setTextColor(colors.white)
+  elseif msg == "nofuel" then
+    fuelError()
+  else
+    print("Message: "..msg)
+  end
+  getNames()
+  if not outOfFuel then 
+    button.toggleButton(name)
+    fillTable()
+  end
+end
+
+function checkNames()
+  if outOfFuel then
+    m.clear()
+  else
+    button.flash("Refresh")
+  end
+   
+  getNames()
+  fillTable()
+  outOfFuel = false
+end
+
+function getClick()
+  event, side, x,y = os.pullEvent()
+  if event == "monitor_touch" then
+    button.checkxy(x,y)
+  elseif event == "redstone" then
+    --print("redstone")
+    sleep(5)
+    getNames()
+    fillTable()
+  end
+end
+
+
+function checkDialer()
+  print "Pinging dialer..."
+  rednet.send(DIALER_ID, "ping")
+  local success = false
+  local id, msg, dis = rednet.receive(5)
+  if (msg == nil) then
+    for i = 2,5 do
+      term.setTextColor(colors.red)
+      print("Dialer did not respond. Trying again.")
+      term.setTextColor(colors.white)
+      print("Pinging dialer (attempt "..i.. " of 5)...")
+      rednet.send(DIALER_ID, "ping")
+      local id, msg, dis = rednet.receive(5)
+      if (msg ~= nil) then
+        success = true
+        break
+      end
+    end
+  else
+    success = true
+  end
+  return success
+end
+
+-- 
+function run()
+  printHeader()
+  print("Initializing...")
+  fillDialers()
+
+  if not checkDialer() then
+    term.setTextColor(colors.red)
+    print("Dialer failed to respond. Is it offline?")
+    term.setTextColor(colors.white)
+    return
+  else
+    print("Dialer locked in")
+  end
+  getNames()
+  print("Addresses loaded")
+  fillTable()
+  print("GUI populated")
+  print("Initialization complete.")
+
+  while true do
+    getClick()
+    --checkNames()
+  end
+end
+
+run()
