@@ -225,7 +225,7 @@ function dial(info)
   print("Requestion dialer to dial "..name.." ("..addr..")")
   data = "dial|"..addr
   rednet.send(tonumber(dialer), data)
-  local id, msg, dis = rednet.receive(5)
+  local id, msg, dis = rednet.receive(8)
   if (msg == nil) then
     term.setTextColor(colors.red)
     print("Dialer failed to respond.")

@@ -120,6 +120,7 @@ while true do
     else
       print("Stargate active; Closing womhole")
       pcall(close)
+      sleep(5)
       pcall(dial, msgArr[2])
       rednet.send(id, "notidle")
     end
