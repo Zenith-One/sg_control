@@ -113,7 +113,7 @@ function removeAddress(info)
   addresses[dialer][slot] = nil
 
   local count = 1
-  for i = 1 to #addresses do
+  for i = 1, #addresses do
    	if addresses[dialer][i] ~= nil then
    		temp[count] = addresses[dialer][i]
    	  count = count +1
