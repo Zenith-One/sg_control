@@ -68,14 +68,14 @@ if #tArgs == 3 then
 		gita.get("Zenith-One","sg_control","master","controller.lua","SGControl")
 		print("Installed SGControl")
 		local file = fs.open("/startup","w")
-		file.writeLine("shell.run('SGDial')")
+		file.writeLine("shell.run('SGControl')")
 		file.close()
-		print("Set SGDial on startup")
+		print("Set SGControl on startup")
 		auth(tArgs[2],tArgs[3])
 		print("kode auth set up.")
 		shell.run("pastebin","get RwCbqP4i button")
 		print("Installed DireWolf20's Button API")
-		
+
 		version = "SGControl"
 		peripherals = "(modem and monitor, as well as set the id for the dialer)"
 		valid = true
