@@ -46,30 +46,53 @@ end
 
 if #tArgs == 3 then
 	local valid = false
+	local version = ""
+	local peripherals = ""
 	if not fs.exists("/gita") then
 		setupGit()
 	end
 	os.loadAPI("gita")
 	
 	emulateDisk()
-
 	if (tArgs[1] == "dialer") then
-		gita.get("Zenith-One","sg_control","dial.lua","SGDial")
-		local file = fs.open("/startup")
+		gita.get("Zenith-One","sg_control","master","dial.lua","SGDial")
+		print("Installed SGDial")
+		local file = fs.open("/startup","w")
 		file.writeLine("shell.run('SGDial')")
 		file.close()
+		print("Set SGDial on startup")
+		version = "SGDial"
+		peripherals = "(modem, fuel chest, and stargate)"
 		valid = true
 	elseif (tArgs[1] == "controller") then
-		gita.get("Zenith-One","sg_control","controller.lua","SGControl")
-		valid = true
-	end
-
-	if valid then
+		gita.get("Zenith-One","sg_control","master","controller.lua","SGControl")
+		print("Installed SGControl")
+		local file = fs.open("/startup","w")
+		file.writeLine("shell.run('SGDial')")
+		file.close()
+		print("Set SGDial on startup")
 		auth(tArgs[2],tArgs[3])
+		print("kode auth set up.")
+		shell.run("pastebin","get RwCbqP4i button")
+		print("Installed DireWolf20's Button API")
+		
+		version = "SGControl"
+		peripherals = "(modem and monitor, as well as set the id for the dialer)"
+		valid = true
 	else 
-		print("Invalid arguments.")
+		error("Illegal argument(s)")
 		printUsage()
 	end
 
 
+	if valid then
+		print("---------------------------------------------------")
+		print(version .. " successfully installed. You will need") 
+		print("to edit it to input the correct sides for its")
+		print("peripherals "..peripherals)
+		print("")
+		if version == "SGDial" then
+			print("This machine's id: "..os.getComputerID())
+		end
+	end
 end
