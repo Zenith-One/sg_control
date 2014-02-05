@@ -50,19 +50,11 @@ if #tArgs < 3 then
 	return
 end
 
-local function setupGit()
-	shell.run("pastebin", "get imKdg0x8 gita")
-	print("CCGit setup.")
-end
-
 if #tArgs == 3 then
 	printHeader()
 	local valid = false
 	local version = ""
 	local peripherals = ""
-	if not fs.exists("/gita") then
-		setupGit()
-	end
 	os.loadAPI("gita")
 	
 	emulateDisk()
