@@ -22,6 +22,7 @@ if #tArgs == 3 then
 	if not fs.exists("/gita") then
 		setupGit()
 	end
+	os.loadAPI("gita")
 	print("Fetching full installer")
 	gita.get("Zenith-One","sg_control","master","SGCinstall.lua","SGCinstall")
 	print("Running full installer")
