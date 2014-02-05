@@ -10,7 +10,6 @@ MONITOR_SIDE = "right"
 MODEM_SIDE = "bottom"
 DIALER_ID = 4
 
-os.loadAPI("button")
 m = peripheral.wrap(MONITOR_SIDE)
 m.clear()
 rednet.open(MODEM_SIDE)
@@ -295,6 +294,10 @@ end
 function run()
   printHeader()
   print("Initializing...")
+  os.loadAPI("button")
+  print("button API loaded")
+  button.setup(m)
+  print("button API initialized")
   fillDialers()
 
   if not checkDialer() then
