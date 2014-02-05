@@ -15,6 +15,7 @@ DIR_FROM_GATE = "down" -- north, south, east, west, up, or down
 
 sg = peripheral.wrap(STARGATE_SIDE)
 rednet.open("right")
+turtle.select(1)
 
 state = {["Idle"] = 0, ["Dialling"] = 1, ["Connected"] = 2}
 

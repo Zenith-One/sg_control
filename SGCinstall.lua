@@ -90,6 +90,7 @@ if #tArgs == 3 then
 		file = fs.open("/addresses","w")
 		file.write("{}")
 		file.close()
+		shell.run("kode","make addresses")
 		shell.run("kode","push addresses /addresses")
 
 		version = "SGControl"
