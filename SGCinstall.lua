@@ -81,11 +81,14 @@ function run()
 				print("kode auth set up.")
 				gita.get("Zenith-One","sg_control","master","button.lua","button")
 				print("Installed modified button API")
-				file = fs.open("/addresses","w")
-				file.write("{}")
-				file.close()
-				shell.run("kode","make addresses")
-				shell.run("kode","push addresses /addresses")
+				shell.run("kode", "pull addresses addresses")
+				if not fs.exists("/addresses") then
+					file = fs.open("/addresses","w")
+					file.write("{}")
+					file.close()
+					shell.run("kode","make addresses")
+					shell.run("kode","push addresses /addresses")
+				end
 
 				version = "SGControl"
 				peripherals = "(modem and monitor, as well as set the id for the dialer)"

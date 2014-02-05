@@ -1,3 +1,8 @@
+-- SGCinstall by zenithselenium - © 2014
+-- Lite Install script for SGCraft computer controlled dialing using kode
+
+-- pastebin get 1gAjPwYT sgcli
+
 local tArgs = {...}
 
 local function printUsage()
