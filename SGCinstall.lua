@@ -44,64 +44,73 @@ local function printUsage()
 	print()
 end
 
-if #tArgs < 3 then
-	-- Not enough arguments given, tell user how to use it
-	printUsage()
-	return
-end
+function run()
 
-if #tArgs == 3 then
-	printHeader()
-	local valid = false
-	local version = ""
-	local peripherals = ""
-	os.loadAPI("gita")
-	
-	emulateDisk()
-	if (tArgs[1] == "dialer") then
-		gita.get("Zenith-One","sg_control","master","dial.lua","SGDial")
-		print("Installed SGDial")
-		local file = fs.open("/startup","w")
-		file.writeLine("shell.run('SGDial')")
-		file.close()
-		print("Set SGDial on startup")
-		version = "SGDial"
-		peripherals = "(modem, fuel chest, and stargate)"
-		valid = true
-	elseif (tArgs[1] == "controller") then
-		gita.get("Zenith-One","sg_control","master","controller.lua","SGControl")
-		print("Installed SGControl")
-		local file = fs.open("/startup","w")
-		file.writeLine("shell.run('SGControl')")
-		file.close()
-		print("Set SGControl on startup")
-		auth(tArgs[2],tArgs[3])
-		print("kode auth set up.")
-		gita.get("Zenith-One","sg_control","master","button.lua","button")
-		print("Installed modified button API")
-		file = fs.open("/addresses","w")
-		file.write("{}")
-		file.close()
-		shell.run("kode","make addresses")
-		shell.run("kode","push addresses /addresses")
-
-		version = "SGControl"
-		peripherals = "(modem and monitor, as well as set the id for the dialer)"
-		valid = true
-	else 
-		error("Illegal argument(s)")
+	if #tArgs < 3 then
+		-- Not enough arguments given, tell user how to use it
 		printUsage()
+		return
 	end
 
+	if #tArgs == 3 then
+		printHeader()
+		local valid = false
+		local version = ""
+		local peripherals = ""
+		os.loadAPI("gita")
+		
+		emulateDisk()
+		if (tArgs[1] == "dialer") then
+			gita.get("Zenith-One","sg_control","master","dial.lua","SGDial")
+			print("Installed SGDial")
+			local file = fs.open("/startup","w")
+			file.writeLine("shell.run('SGDial')")
+			file.close()
+			print("Set SGDial on startup")
+			version = "SGDial"
+			peripherals = "(modem, fuel chest, and stargate)"
+			valid = true
+		elseif (tArgs[1] == "controller") then
+			if gita.get("Zenith-One","sg_control","master","controller.lua","SGControl") then
+				print("Installed SGControl")
+				local file = fs.open("/startup","w")
+				file.writeLine("shell.run('SGControl')")
+				file.close()
+				print("Set SGControl on startup")
+				auth(tArgs[2],tArgs[3])
+				print("kode auth set up.")
+				gita.get("Zenith-One","sg_control","master","button.lua","button")
+				print("Installed modified button API")
+				file = fs.open("/addresses","w")
+				file.write("{}")
+				file.close()
+				shell.run("kode","make addresses")
+				shell.run("kode","push addresses /addresses")
 
-	if valid then
-		print("---------------------------------------------------")
-		print(version .. " successfully installed. You will need") 
-		print("to edit it to input the correct sides for its")
-		print("peripherals "..peripherals)
-		print("")
-		if version == "SGDial" then
-			print("This machine's id: "..os.getComputerID())
+				version = "SGControl"
+				peripherals = "(modem and monitor, as well as set the id for the dialer)"
+				valid = true
+			else
+				print("Failed to fetch SGControl. Please try again")
+				return
+			end
+		else 
+			error("Illegal argument(s)")
+			printUsage()
+		end
+
+
+		if valid then
+			print("---------------------------------------------------")
+			print(version .. " successfully installed. You will need") 
+			print("to edit it to input the correct sides for its")
+			print("peripherals "..peripherals)
+			print("")
+			if version == "SGDial" then
+				print("This machine's id: "..os.getComputerID())
+			end
 		end
 	end
 end
+
+run()
