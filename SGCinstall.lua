@@ -61,7 +61,7 @@ function run()
 		
 		emulateDisk()
 		if (tArgs[1] == "dialer") then
-			gita.get("Zenith-One","sg_control","master","dial.lua","SGDial")
+			gita.get("Zenith-One","sg_control","master","SGDial.lua","SGDial")
 			print("Installed SGDial")
 			local file = fs.open("/startup","w")
 			file.writeLine("shell.run('SGDial')")
@@ -71,7 +71,7 @@ function run()
 			peripherals = "(modem, fuel chest, and stargate)"
 			valid = true
 		elseif (tArgs[1] == "controller") then
-			if gita.get("Zenith-One","sg_control","master","controller.lua","SGControl") then
+			if gita.get("Zenith-One","sg_control","master","SGControl.lua","SGControl") then
 				print("Installed SGControl")
 				local file = fs.open("/startup","w")
 				file.writeLine("shell.run('SGControl')")
