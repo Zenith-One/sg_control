@@ -2,14 +2,20 @@
 -- Large portions of this code is adapted from DireWolf20's portal program
 -- ( http://pastebin.com/ELAFP3kT )
 
--- config
-MONITOR_SIDE = "right"
-MODEM_SIDE = "bottom"
-DIALER_ID = 4
+function loadConfig()
+  local out = {}
+  if not fs.exists("SGC_config.txt") then
+    print("Could not find config file. Please reinstall SGControl.")
+    return nil
+  end
+  local config = fs.open("/SGC_config.txt","r")
+  out.monitor = config.readLine()
+  out.modem   = config.readLine()
+  out.dialer  = config.readLine()
+  
+  return out
+end
 
-m = peripheral.wrap(MONITOR_SIDE)
-m.clear()
-rednet.open(MODEM_SIDE)
 local page = 1
 local pages = 0
 local names = {}
@@ -28,8 +34,8 @@ function printHeader()
   print()
 end
 
-function fillDialers()
-   dialers[1] = DIALER_ID
+function fillDialers(dialer)
+   dialers[1] = dialer
 end
 
 function printTable(table)
@@ -291,11 +297,22 @@ end
 function run()
   printHeader()
   print("Initializing...")
+  print("Loading config")
+
+  local config = loadConfig()
+  if config == nil then
+    return
+  end
+  print("Config loaded")
+  m = peripheral.wrap(config.monitor)
+  m.clear()
+  rednet.open(config.modem)
+
   os.loadAPI("button")
   print("button API loaded")
   button.setup(m)
   print("button API initialized")
-  fillDialers()
+  fillDialers(config.dialer)
 
   if not checkDialer() then
     term.setTextColor(colors.red)

@@ -6,15 +6,25 @@
 --   * DIR_FROM_GATE wants the turtle's position relative to the gate.
 --     e.g. "The turtle is west of the gate"
 
-FUEL_CHEST_SIDE = "bottom" -- front, top, or bottom
-STARGATE_SIDE = "top" -- front, left, right, back, top, or bottom
-DIR_FROM_GATE = "down" -- north, south, east, west, up, or down
 
-sg = peripheral.wrap(STARGATE_SIDE)
-rednet.open("right")
-turtle.select(1)
+function loadConfig()
+  local out = {}
+  if not fs.exists("SGD_config.txt") then
+    print("Could not find config file. Please reinstall SGDial.")
+    return nil
+  end
+  local config = fs.open("/SGD_config.txt","r")
+  out.fuel = config.readLine()
+  out.sg_side   = config.readLine()
+  out.dir_from_gate  = config.readLine()
+  
+  return out
+end
 
-state = {["Idle"] = 0, ["Dialling"] = 1, ["Connected"] = 2}
+local FUEL_CHEST_SIDE = ""
+local DIR_FROM_GATE = ""
+
+local state = {["Idle"] = 0, ["Dialling"] = 1, ["Connected"] = 2}
 
 function printHeader()
   shell.run("clear")
@@ -96,44 +106,56 @@ end
 
 printHeader()
 
-while true do
-  local id, msg, dis = rednet.receive()
---  print("message received: "..msg)
-  local msgArr = split(msg, "|", 0)
-  local status = state[sg.getState()]
---  print(status)
---  print("Message array:")
---  for i=1,#msgArr do
---    print(i..": "..msgArr[i])
---  end
-  if msgArr[1] == "dial" then
-    if status == 0 then
-      print(msgArr[2])
-      if pcall(dial, id, msgArr[2]) then
-        rednet.send(id, "dialing")
+function run()
+  local config = loadConfig()
+  if config == nil then
+    return
+  end
+  sg = peripheral.wrap(config.sg_side)
+  rednet.open("right")
+  FUEL_CHEST_SIDE = config.fuel
+  DIR_FROM_GATE = config.dir_from_gate
+  turtle.select(1)
+
+  while true do
+    local id, msg, dis = rednet.receive()
+  --  print("message received: "..msg)
+    local msgArr = split(msg, "|", 0)
+    local status = state[sg.getState()]
+  --  print(status)
+  --  print("Message array:")
+  --  for i=1,#msgArr do
+  --    print(i..": "..msgArr[i])
+  --  end
+    if msgArr[1] == "dial" then
+      if status == 0 then
+        print(msgArr[2])
+        if pcall(dial, id, msgArr[2]) then
+          rednet.send(id, "dialing")
+        else
+          print("Unable to dial. Check fuel and verify address.")
+          rednet.send(id, "unable")
+        end
       else
-        print("Unable to dial. Check fuel and verify address.")
-        rednet.send(id, "unable")
+        print("Stargate active; Closing womhole")
+        pcall(close)
+        --sleep(7)
+        pcall(dial, id, msgArr[2])
+        rednet.send(id, "notidle")
       end
-    else
-      print("Stargate active; Closing womhole")
-      pcall(close)
-      --sleep(7)
-      pcall(dial, id, msgArr[2])
-      rednet.send(id, "notidle")
-    end
-  elseif msgArr[1] == "close" then
-    if status ~= 0 then
-      if pcall(close) then
-        print("Closing wormhole")
+    elseif msgArr[1] == "close" then
+      if status ~= 0 then
+        if pcall(close) then
+          print("Closing wormhole")
+        else
+          print("Could not close wormhole!")
+        end
       else
-        print("Could not close wormhole!")
+        print("No wormhole to close!")
       end
-    else
-      print("No wormhole to close!")
+    elseif msgArr[1] == "ping" then
+      print("Receieve ping from #"..id)
+      rednet.send(id,"pong")
     end
-  elseif msgArr[1] == "ping" then
-    print("Receieve ping from #"..id)
-    rednet.send(id,"pong")
   end
 end

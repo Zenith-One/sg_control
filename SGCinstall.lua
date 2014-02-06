@@ -13,6 +13,11 @@ function printHeader()
   print()
 end
 
+function readNumber(rn)
+	rn[1] = tonumber(read())
+end
+
+
 function emulateDisk()
 	if (fs.exists("/disk")) then
 		print("/disk exists. Using that.")
@@ -54,10 +59,7 @@ end
 
 local function printUsage()
 	print("Lite installation script for kode and stargate control")
-	print("Usage: SGCinstall dialer")
-	print("OR:    SGCinstall controller <username> <project key>")
-	print("")
-	print("Username and project key will be used for the stargate address file stored on kode. (https://kealper.com/projects/kode/)") 
+	print("Usage: SGCinstall <dialer/controller>")
 	print()
 end
 
@@ -74,7 +76,7 @@ function run()
 	local version = ""
 	local peripherals = ""
 
-	if #tArgs == 3 and tArgs[1] == "controller" then
+	if #tArgs == 1 and tArgs[1] == "controller" then
 		emulateDisk()
 		if not getAndSave("https://raw.github.com/Zenith-One/sg_control/master/SGControl.lua","/SGControl") then
 			print("Failed to download SGControl")
@@ -86,7 +88,35 @@ function run()
 				return
 			end
 			print("Set SGControl to run on startup")
-			auth(tArgs[2],tArgs[3])
+			print()
+			print("Setting up kode auth")
+			print("This username and password will be used to store your Stargate addresses on kode (https://kealper.com/projects/kode/)")
+			print("Note: To synchronize addresses across multiple gates, each controller needs to be set up with the same authentication credentials.")
+			print("What is the username you wish to use for your kode address repository? (this should be unique to this stargate network)")
+			local kode_un = read()
+			print()
+			local pw_match = false
+			local count = 1
+			local kode_pw = ""
+			while pw_match == false and count < 3 do
+				print("Please enter the password you wish to use for the kode repository")
+				local kode_pw1 = read()
+				print("Confirm password")
+				local kode_pw2 = read()
+				if kode_pw1 == kode_pw2 then
+					pw_match = true
+					kode_pw = kode_pw2
+				else
+					print("Passwords do not match.")
+					print()
+					count = count + 1
+				end
+			end
+			if kode_pw == "" then
+				print("Please run this installer again and ensure that you enter the same password.")
+				return
+			end
+			auth(kode_un,kode_pw)
 			print("kode auth set up.")
 			
 			if not getAndSave("https://raw.github.com/Zenith-One/sg_control/master/button.lua","/button") then
@@ -104,7 +134,35 @@ function run()
 				end
 
 				version = "SGControl"
-				peripherals = "(modem and monitor, as well as set the id for the dialer)"
+				print()
+
+				-- get config
+				print("On what side is the monitor?")
+				print("(front/left/right/back/top/bottom)")
+				local monitor_side = read()
+
+				print()
+				print("On what side is the modem?")
+				print("(front/left/right/back/top/bottom)")
+				local modem_side = read()
+
+				print()
+				print("What is the id of the dialer?")
+				local temp = {}
+				local turtle = "unknown"
+				if pcall(readNumber, temp) then
+					turtle = temp[1]
+				else 
+					print("Not a number. You'll need to edit SGC_config.txt with the proper id.")
+				end
+
+				print()
+				print("Building config file")
+				local config = fs.open("SGC_config.txt","w")
+				config.writeLine(monitor_side)
+				config.writeLine(modem_side)
+				config.writeLine(turtle)
+				config.close()
 			end
 		end 
 	elseif #tArgs == 1 and tArgs[1] == "dialer" then
@@ -123,7 +181,30 @@ function run()
 			end
 			print("Set SGDial to run on startup")
 			version = "SGDial"
-			peripherals = "(Stargate and fuel chest)"
+			
+			print()
+			print("In what direction is the dialer from the Stargate Base?")
+			print("(down/north/south/east/west)")
+			print("e.g. if the dialer is to the north of the Stargate Base, enter north")
+			local sg_dir = read()
+
+			print()
+			print("On what side of the dialer is the Stargate Base?")
+			print("(front/top/bottom)")
+			local sg_side = read()
+
+			print()
+			print("On what side of the dialer is the fuel chest?")
+			print("(front/top/bottom)")
+			local fc_side = read()
+
+			print()
+			print("Building config file")
+			local config = fs.open("SGD_config.txt","w")
+			config.writeLine(fc_side)
+			config.writeLine(sg_side)
+			config.writeLine(sg_dir)
+			config.close()
 		end
 
 	else
