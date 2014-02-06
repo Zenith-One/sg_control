@@ -19,7 +19,7 @@ function loadConfig()
   out.sg_side   = config.readLine()
   print("stargate: "..out.sg_side)
   out.dir_from_gate  = config.readLine()
-  print("Direction from gate: "..dir_from_gate)
+  print("Direction from gate: "..out.dir_from_gate)
   
   return out
 end
