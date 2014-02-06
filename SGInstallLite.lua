@@ -39,6 +39,9 @@ function run()
 		end
 		print("Running full installer")
 		shell.run("SGCinstall",getArgsString(tArgs))
+		print("")
+		print("Cleaning up - removing lite installer")
+		shell.run("rm",shell.getRunningProgram())
 	else
 		printUsage()
 	end
