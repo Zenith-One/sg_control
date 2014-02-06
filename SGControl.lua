@@ -336,7 +336,7 @@ function run()
   print("Config loaded")
   m = peripheral.wrap(config.monitor)
   m.clear()
-  initializingMessage()
+  --initializingMessage()
   rednet.open(config.modem)
 
   os.loadAPI("button")

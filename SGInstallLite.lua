@@ -7,7 +7,7 @@ local tArgs = {...}
 
 local function printUsage()
 	print("Lite installation script for kode and stargate control")
-	print("Usage: SGCinstall <dialer/controller>")
+	print("Usage: sgcli <dialer/controller>")
 	print()
 end
 
