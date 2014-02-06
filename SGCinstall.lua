@@ -81,11 +81,10 @@ function run()
 			return
 		else	
 			print("Installed SGControl")
-			local file = fs.open("/startup","w")
-			file.writeLine("--so we don't try to wrap a peripheral that's not fully loaded")
-			file.writeLine("sleep(10)")
-			file.writeLine("shell.run('SGControl')")
-			file.close()
+			if not getAndSave("https://raw.github.com/Zenith-One/sg_control/master/controller_startup.lua","/startup") then
+				print("Failed to install startup script")
+				return
+			end
 			print("Set SGControl to run on startup")
 			auth(tArgs[2],tArgs[3])
 			print("kode auth set up.")
@@ -114,11 +113,10 @@ function run()
 			return
 		else
 			print("Installed SGDial")
-			local file = fs.open("/startup","w")
-			file.writeLine("--so we don't try to wrap a peripheral that's not fully loaded")
-			file.writeLine("sleep(10)")
-			file.writeLine("shell.run('SGDial')")
-			file.close()
+			if not getAndSave("https://raw.github.com/Zenith-One/sg_control/master/dialer_startup.lua","/startup") then
+				print("Failed to install startup script")
+				return
+			end
 			print("Set SGDial to run on startup")
 			version = "SGDial"
 			peripherals = "(Stargate and fuel chest)"
