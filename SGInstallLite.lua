@@ -38,7 +38,7 @@ function run()
 			return
 		end
 		print("Running full installer")
-		shell.run("SGCinstall",getArgsString(args))
+		shell.run("SGCinstall",getArgsString(tArgs))
 	else
 		printUsage()
 	end

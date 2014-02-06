@@ -2,9 +2,6 @@
 -- Large portions of this code is adapted from DireWolf20's portal program
 -- ( http://pastebin.com/ELAFP3kT )
 
--- So that we don't try and wrap peripherals before they're properly loaded
-sleep(10)
-
 -- config
 MONITOR_SIDE = "right"
 MODEM_SIDE = "bottom"

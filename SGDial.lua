@@ -1,8 +1,5 @@
 -- SGDial by zenithselenium - © 2014
 
--- So that we don't try and wrap peripherals before they're properly loaded
-sleep(10)
-
 -- Configuration
 -- Notes: 
 --   * 'sides' are from the perspective of the way the turtle is facing
