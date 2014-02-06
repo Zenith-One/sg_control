@@ -187,7 +187,7 @@ function addAddress()
   print("Address: ")
   local address = read()
   printHeader()
-  local addresses = names[DIALER_ID]
+  local addresses = names[dialers[1]]
   addresses[#addresses + 1] = {["name"]=name,["addr"]=address}
   local file = fs.open("/addresses","w")
   file.write(textutils.serialize(addresses))
@@ -217,7 +217,7 @@ end
 
 function closeGate()
   button.flash("Close Gate")
-  rednet.send(DIALER_ID, "close|now")
+  rednet.send(dialers[1], "close|now")
   getNames()
   fillTable()
 end
@@ -259,8 +259,30 @@ function checkNames()
   outOfFuel = false
 end
 
+function controllerOfflineMessage()
+  m.clear()
+  m.clear()
+  msgBox()
+  m.setTextColor(colors.black)
+  m.setCursorPos(11,9)
+  m.write("Controller offline")
+  m.setBackgroundColor(colors.black)
+  m.setTextColor(colors.white)
+end
+
+function initializingMessage()
+  m.clear()
+  m.clear()
+  msgBox()
+  m.setTextColor(colors.black)
+  m.setCursorPos(14,9)
+  m.write("Initializing")
+  m.setBackgroundColor(colors.black)
+  m.setTextColor(colors.white)
+end
+
 function getClick()
-  event, side, x,y = os.pullEvent()
+  event, side, x,y = os.pullEventRaw()
   if event == "monitor_touch" then
     button.checkxy(x,y)
   elseif event == "redstone" then
@@ -268,13 +290,18 @@ function getClick()
     sleep(5)
     getNames()
     fillTable()
+  elseif event == "terminate" then
+    print("Terminating")
+    controllerOfflineMessage()
+    return false
   end
+  return true
 end
 
 
 function checkDialer()
   print "Pinging dialer..."
-  rednet.send(DIALER_ID, "ping")
+  rednet.send(dialers[1], "ping")
   local success = false
   local id, msg, dis = rednet.receive(5)
   if (msg == nil) then
@@ -283,7 +310,7 @@ function checkDialer()
       print("Dialer did not respond. Trying again.")
       term.setTextColor(colors.white)
       print("Pinging dialer (attempt "..i.. " of 5)...")
-      rednet.send(DIALER_ID, "ping")
+      rednet.send(dialers[1], "ping")
       local id, msg, dis = rednet.receive(5)
       if (msg ~= nil) then
         success = true
@@ -309,6 +336,7 @@ function run()
   print("Config loaded")
   m = peripheral.wrap(config.monitor)
   m.clear()
+  initializingMessage()
   rednet.open(config.modem)
 
   os.loadAPI("button")
@@ -330,11 +358,12 @@ function run()
   fillTable()
   print("GUI populated")
   print("Initialization complete.")
-
-  while true do
-    getClick()
+  local continue = true
+  while continue do
+    continue = getClick()
     --checkNames()
   end
 end
 
 run()
+controllerOfflineMessage()
