@@ -15,8 +15,11 @@ function loadConfig()
   end
   local config = fs.open("/SGD_config.txt","r")
   out.fuel = config.readLine()
+  print("Fuel chest: "..out.fuel)
   out.sg_side   = config.readLine()
+  print("stargate: "..out.sg_side)
   out.dir_from_gate  = config.readLine()
+  print("Direction from gate: "..dir_from_gate)
   
   return out
 end

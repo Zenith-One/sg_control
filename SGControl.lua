@@ -10,8 +10,11 @@ function loadConfig()
   end
   local config = fs.open("/SGC_config.txt","r")
   out.monitor = config.readLine()
+  print("monitor: "..out.monitor)
   out.modem   = config.readLine()
+  print("modem: "..out.modem)
   out.dialer  = config.readLine()
+  print("dialer: "..out.dialer)
   
   return out
 end
@@ -35,7 +38,7 @@ function printHeader()
 end
 
 function fillDialers(dialer)
-   dialers[1] = dialer
+   dialers[1] = tonumber(dialer)
 end
 
 function printTable(table)
@@ -224,7 +227,7 @@ function dial(info)
   local name = names[tonumber(dialer)][tonumber(slot)].name
   local addr = names[tonumber(dialer)] [tonumber(slot)] .addr
   button.toggleButton(name)
-  print("Requestion dialer to dial "..name.." ("..addr..")")
+  print("Requesting dialer to dial "..name.." ("..addr..")")
   data = "dial|"..addr
   rednet.send(tonumber(dialer), data)
   local id, msg, dis = rednet.receive(8)
