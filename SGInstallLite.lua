@@ -7,10 +7,7 @@ local tArgs = {...}
 
 local function printUsage()
 	print("Lite installation script for kode and stargate control")
-	print("Usage: sgcli dialer")
-	print("OR:    sgcli controller <username> <project key>")
-	print("")
-	print("Username and project key will be used for the stargate address file stored on kode. (https://kealper.com/projects/kode/)") 
+	print("Usage: SGCinstall <dialer/controller>")
 	print()
 end
 
