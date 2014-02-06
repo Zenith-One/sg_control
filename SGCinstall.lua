@@ -132,9 +132,6 @@ function run()
 		return
 	end
 
-	print("Cleaning up - removing SGCinstall")
-	shell.run("rm",shell.getRunningProgram())
-	
 	print("------------------------------------------")
 	print(version .. " successfully installed. You will need to edit it to input the correct sides for its peripherals "..peripherals)
 	print("")
@@ -146,3 +143,5 @@ function run()
 end
 
 run()
+print("Cleaning up - removing SGCinstall")
+shell.run("rm",shell.getRunningProgram())
