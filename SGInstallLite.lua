@@ -13,20 +13,34 @@ local function printUsage()
 	print()
 end
 
-local function setupGit()
-	shell.run("pastebin", "get imKdg0x8 gita")
-	print("CCGit installed.")
+function getArgsString(args)
+	local out = args[1]
+	if #args > 1 then
+		for i = 2,#args do
+			out = out .. " " .. args[i]
+		end
+	end
+	return out
 end
 
-if #tArgs == 3 then
-	if not fs.exists("/gita") then
-		setupGit()
+function run()
+	if #tArgs >= 1 then
+		print("Fetching full installer")
+		local src = http.get("https://raw.github.com/Zenith-One/sg_control/master/SGCinstall.lua")
+		if src ~= nil then
+			local file = fs.open("/SGCinstall","w")
+			file.write(src.readAll())
+			file.close()
+			src.close()
+		else
+			print("Failed to download full installer.")
+			return
+		end
+		print("Running full installer")
+		shell.run("SGCinstall",getArgsString(args))
+	else
+		printUsage()
 	end
-	os.loadAPI("gita")
-	print("Fetching full installer")
-	gita.get("Zenith-One","sg_control","master","SGCinstall.lua","SGCinstall")
-	print("Running full installer")
-	shell.run("SGCinstall",tArgs[1],tArgs[2],tArgs[3])
-else
-	printUsage()
 end
+
+run()

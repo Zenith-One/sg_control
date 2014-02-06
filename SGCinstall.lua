@@ -24,6 +24,8 @@ end
 
 local tArgs = {...}
 
+
+-- set up kode auth file and disk emulation
 local function auth(un,pkey)
 	local file = fs.open("/disk/.koderc",'w')
 	file.writeLine(un)
@@ -35,6 +37,20 @@ local function auth(un,pkey)
 	shell.run("rm","install_kode")
 end
 
+-- get file via http and save it to the filename passed in
+local function getAndSave(url, filename)
+	local src = http.get(url)
+	if src == nil then
+		print("failed to get file: "..url)
+		return false
+	else
+		local file = fs.open(filename,"w")
+		file.write(src.readAll())
+		file.close()
+		src.close()
+	end
+	return true
+end
 
 local function printUsage()
 	print("Istallation script for kode and stargate control")
@@ -46,40 +62,36 @@ end
 
 function run()
 
-	if #tArgs < 3 then
+	if #tArgs < 1 then
 		-- Not enough arguments given, tell user how to use it
 		printUsage()
 		return
 	end
 
-	if #tArgs == 3 then
-		printHeader()
-		local valid = false
-		local version = ""
-		local peripherals = ""
-		os.loadAPI("gita")
-		
+	printHeader()
+	local valid = false
+	local version = ""
+	local peripherals = ""
+
+	if #tArgs == 3 and tArgs[1] == "controller" then
 		emulateDisk()
-		if (tArgs[1] == "dialer") then
-			gita.get("Zenith-One","sg_control","master","SGDial.lua","SGDial")
-			print("Installed SGDial")
+		if not getAndSave("https://raw.github.com/Zenith-One/sg_control/master/SGControl.lua","/SGControl") then
+			print("Failed to download SGControl")
+			return
+		else	
+			print("Installed SGControl")
 			local file = fs.open("/startup","w")
-			file.writeLine("shell.run('SGDial')")
+			file.writeLine("sleep(10)")
+			file.writeLine("shell.run('SGControl')")
 			file.close()
-			print("Set SGDial on startup")
-			version = "SGDial"
-			peripherals = "(modem, fuel chest, and stargate)"
-			valid = true
-		elseif (tArgs[1] == "controller") then
-			if gita.get("Zenith-One","sg_control","master","SGControl.lua","SGControl") then
-				print("Installed SGControl")
-				local file = fs.open("/startup","w")
-				file.writeLine("shell.run('SGControl')")
-				file.close()
-				print("Set SGControl on startup")
-				auth(tArgs[2],tArgs[3])
-				print("kode auth set up.")
-				gita.get("Zenith-One","sg_control","master","button.lua","button")
+			print("Set SGControl to run on startup")
+			auth(tArgs[2],tArgs[3])
+			print("kode auth set up.")
+			
+			if not getAndSave("https://raw.github.com/Zenith-One/sg_control/master/button.lua","/button") then
+				print("Failed to install button API")
+				return
+			else
 				print("Installed modified button API")
 				shell.run("kode", "pull addresses addresses")
 				if not fs.exists("/addresses") then
@@ -92,28 +104,38 @@ function run()
 
 				version = "SGControl"
 				peripherals = "(modem and monitor, as well as set the id for the dialer)"
-				valid = true
-			else
-				print("Failed to fetch SGControl. Please try again")
-				return
 			end
-		else 
-			error("Illegal argument(s)")
-			printUsage()
+		end 
+	elseif #tArgs == 1 and tArgs[1] == "dialer" then
+		if not getAndSave("https://raw.github.com/Zenith-One/sg_control/master/SGDial.lua","/SGDial") then
+			print("Failed to download SGDial")
+			return
+		else
+			print("Installed SGDial")
+			local file = fs.open("/startup","w")
+			file.writeLine("sleep(10)")
+			file.writeLine("shell.run('SGDial')")
+			file.close()
+			print("Set SGDial to run on startup")
+			version = "SGDial"
+			peripherals = "(Stargate and fuel chest)"
 		end
 
-
-		if valid then
-			print("---------------------------------------------------")
-			print(version .. " successfully installed. You will need") 
-			print("to edit it to input the correct sides for its")
-			print("peripherals "..peripherals)
-			print("")
-			if version == "SGDial" then
-				print("This machine's id: "..os.getComputerID())
-			end
-		end
+	else
+		error("Illegal argument(s)")
+		printUsage()
+		return
 	end
+
+	print("---------------------------------------------------")
+	print(version .. " successfully installed. You will need") 
+	print("to edit it to input the correct sides for its")
+	print("peripherals "..peripherals)
+	print("")
+	if version == "SGDial" then
+		print("This machine's id: "..os.getComputerID())
+	end
+	
 end
 
 run()
