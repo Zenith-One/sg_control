@@ -40,8 +40,11 @@ function run()
 		print("Running full installer")
 		shell.run("SGCinstall",getArgsString(tArgs))
 		print("")
-		print("Cleaning up - removing lite installer")
-		shell.run("rm",shell.getRunningProgram())
+	
+		if fs.exists("/SGDial") or fs.exists("/SGControl") then
+			print("Cleaning up - removing lite installer")
+			shell.run("rm",shell.getRunningProgram())
+		end
 	else
 		printUsage()
 	end
