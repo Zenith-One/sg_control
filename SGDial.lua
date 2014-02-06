@@ -159,3 +159,5 @@ function run()
     end
   end
 end
+
+run()
