@@ -4,6 +4,7 @@ print()
 local rnd = math.random(20)
 print("Also waiting a random amount of time ("..rnd.."sec.) so we don't slam the server with tons of HTTP requests")
 print()
+sleep(rnd)
 
 -- install any updates to this startup script
 print("Updating startup script")
