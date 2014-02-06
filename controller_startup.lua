@@ -1,3 +1,5 @@
+--testing startup
+
 print("Waiting 10 seconds so we don't try and wrap peripherals before they're ready")
 sleep(10)
 print()
