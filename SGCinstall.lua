@@ -130,10 +130,8 @@ function run()
 		return
 	end
 
-	print("---------------------------------------------------")
-	print(version .. " successfully installed. You will need") 
-	print("to edit it to input the correct sides for its")
-	print("peripherals "..peripherals)
+	print("------------------------------------------")
+	print(version .. " successfully installed. You will need to edit it to input the correct sides for its peripherals "..peripherals)
 	print("")
 	if version == "SGDial" then
 		print("This machine's id: "..os.getComputerID())

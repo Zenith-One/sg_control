@@ -18,12 +18,12 @@ state = {["Idle"] = 0, ["Dialling"] = 1, ["Connected"] = 2}
 
 function printHeader()
   shell.run("clear")
-  print("################################################")
-  print("#                                              #")
-  print("#                    SGDial                    #")
-  print("#              by: zenithselenium              #")
-  print("#                                              #")
-  print("################################################")
+  print("#######################################")
+  print("#                                     #")
+  print("#                SGDial               #")
+  print("#          by: zenithselenium         #")
+  print("#                                     #")
+  print("#######################################")
   print()
 end
 
