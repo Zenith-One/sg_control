@@ -53,10 +53,11 @@ local function getAndSave(url, filename)
 end
 
 local function printUsage()
-	print("Istallation script for kode and stargate control")
-	print("Usage: sgcinstall <dialer/controller> <username> <project key>")
+	print("Lite installation script for kode and stargate control")
+	print("Usage: SGCinstall dialer")
+	print("OR:    SGCinstall controller <username> <project key>")
 	print("")
-	print("username and project key will be used for the stargate address file stored on kode. (https://kealper.com/projects/kode/)") 
+	print("Username and project key will be used for the stargate address file stored on kode. (https://kealper.com/projects/kode/)") 
 	print()
 end
 

@@ -1,4 +1,4 @@
--- SGCinstall by zenithselenium - © 2014
+-- sgcli (SGInstallLite) by zenithselenium - © 2014
 -- Lite Install script for SGCraft computer controlled dialing using kode
 
 -- pastebin get 1gAjPwYT sgcli
@@ -7,9 +7,10 @@ local tArgs = {...}
 
 local function printUsage()
 	print("Lite installation script for kode and stargate control")
-	print("Usage: sgcli <dialer/controller> <username> <project key>")
+	print("Usage: sgcli dialer")
+	print("OR:    sgcli controller <username> <project key>")
 	print("")
-	print("username and project key will be used for the stargate address file stored on kode. (https://kealper.com/projects/kode/)") 
+	print("Username and project key will be used for the stargate address file stored on kode. (https://kealper.com/projects/kode/)") 
 	print()
 end
 
