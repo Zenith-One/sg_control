@@ -314,7 +314,7 @@ function getClick()
     print("Terminating")
     controllerOfflineMessage()
     return false
-  elseif event == "key" and side == 37 then
+  elseif event == "key" and side == 32 then
     manualDial()
   end
   return true
