@@ -297,8 +297,9 @@ function manualDial()
   print("Enter address")
   local addr = read()
   rednet.send(tonumber(dialers[1]), "dial|"..addr)
-  msg = rednet.receive(5)
+  id, msg = rednet.receive(5)
   print(msg)
+  checkNames()
 end
 
 function getClick()
