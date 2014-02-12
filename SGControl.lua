@@ -281,6 +281,26 @@ function initializingMessage()
   m.setTextColor(colors.white)
 end
 
+function manualDialMessage()
+  m.clear()
+  msgBox()
+  m.setTextColor(colors.black)
+  m.setCursorPos(13,9)
+  m.write("Manual Dialing")
+  m.setBackgroundColor(colors.black)
+  m.setTextColor(colors.white)
+end
+
+function manualDial()
+  manualDialMessage()
+  printHeader()
+  print("Enter address")
+  local addr = read()
+  rednet.send(tonumber(dialers[1]), "dial|"..addr)
+  msg = rednet.receive(5)
+  print(msg)
+end
+
 function getClick()
   event, side, x,y = os.pullEventRaw()
   if event == "monitor_touch" then
@@ -294,6 +314,8 @@ function getClick()
     print("Terminating")
     controllerOfflineMessage()
     return false
+  elseif event == "key" and side == 37 then
+    manualDial()
   end
   return true
 end
